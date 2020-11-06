@@ -29,17 +29,6 @@ public class FileUploadTests {
 
 	@MockBean
 	private StorageService storageService;
-	
-	@Test
-	public void shouldSaveUploadedFile() throws Exception {
-		MockMultipartFile multipartFile = new MockMultipartFile("file", "test.txt",
-				"text/plain", "Spring Framework".getBytes());
-		this.mvc.perform(multipart("/").file(multipartFile))
-				.andExpect(status().isFound())
-				.andExpect(header().string("Location", "/"));
-
-		then(this.storageService).should().store(multipartFile);
-	}
 
 	@SuppressWarnings("unchecked")
 	@Test
