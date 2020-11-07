@@ -1,14 +1,12 @@
 package com.example.uploadingfiles.storage;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
+import com.google.code.externalsorting.ExternalSort;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -58,15 +56,13 @@ public class FileSystemStorageService implements StorageService {
 	@Override
 	public Resource loadWithoutDuplicates(String filename) {
 		try {
-			Path file = load(filename);
-			Path newFile;
+			File input = load(filename).toFile();
+			Path outputPath = this.rootLocation.resolve(Paths.get("output")).normalize().toAbsolutePath();
+			File output = new File(outputPath.toString());
+			ExternalSort.mergeSortedFiles(
+					ExternalSort.sortInBatch(input,ExternalSort.defaultcomparator,true), output);
+			Resource resource = new UrlResource(outputPath.toUri());
 
-			try (Stream<String> stream = Files.lines(file)) {
-				newFile = Files.write(this.rootLocation.resolve(
-						Paths.get("output")
-						.normalize().toAbsolutePath()), (Iterable<String>) stream.distinct()::iterator);
-			}
-			Resource resource = new UrlResource(newFile.toUri());
 			if (resource.exists() || resource.isReadable()) {
 				return resource;
 			}
